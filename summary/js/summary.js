@@ -146,36 +146,38 @@ async function showAnswers(index) {
 }
 // 导出数据
 async function exportData() {
-    const data = await getCurrentData();
-    if (data.length === 0) {
-        alert('暂无数据可导出！');
-        return;
+    try {
+        // 调用接口下载 CSV 文件，接口地址为 https://qessdk.blingcc.eu.org/downdb
+        const response = await fetch('https://qessdk.blingcc.eu.org/downdb', {
+            method: 'GET'
+        });
+
+        if (!response.ok) {
+            throw new Error('导出数据失败，服务器返回: ' + response.statusText);
+        }
+
+        // 获取后端返回的 CSV 文件 Blob
+        const blob = await response.blob();
+
+        // 根据 Blob 对象创建下载链接
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // 设置默认下载文件名称
+        // 可以根据实际需求进行自定义(如添加日期、时段等信息)
+        let filename = '问卷数据_' + new Date().toISOString().split('T')[0] + '.csv';
+        link.download = filename;
+
+        // 触发点击进行下载，并在之后释放 URL 对象
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('下载数据失败：', error);
+        alert('导出数据失败，请稍后重试！');
     }
-
-    const exportData = data.map(item => ({
-        问卷类型: questionnaireTitles[item.type],
-        提交时间: formatDate(item.timestamp),
-        ...item.answers
-    }));
-
-    const csv = convertToCSV(exportData);
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-
-    let filename = '问卷数据';
-    if (startDate) {
-        const formattedStartDate = new Date(startDate).toISOString().split('T')[0];
-        filename += `_从${formattedStartDate}`;
-    }
-    if (endDate) {
-        const formattedEndDate = new Date(endDate).toISOString().split('T')[0];
-        filename += `_至${formattedEndDate}`;
-    }
-    filename += `_${formatDate(Date.now())}.csv`;
-
-    link.download = filename;
-    link.click();
 }
 // 清除数据
 async function clearData() {

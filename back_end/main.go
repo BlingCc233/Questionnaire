@@ -1,7 +1,11 @@
 package main
 
 import (
+	"encoding/csv"
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -61,6 +65,7 @@ func main() {
 		panic("failed to connect database")
 	}
 
+	// 自动迁移数据模型
 	err = db.AutoMigrate(&AnswerRecord{}, &Answer{})
 	if err != nil {
 		panic("failed to migrate database")
@@ -78,8 +83,74 @@ func main() {
 	r.GET("/getdata", func(c *gin.Context) {
 		getData(c, db)
 	})
+	r.GET("/downdb", func(c *gin.Context) {
+		// 生成 CSV 文件
+		filePath := "./answer.csv"
+		if err := dbToCSV(db, filePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// 定义下载文件名，这里使用纳秒级时间戳
+		downloadName := fmt.Sprintf("%d.csv", time.Now().UnixNano())
+		// 发送文件附件
+		c.FileAttachment(filePath, downloadName)
+
+		// 传输完成后，删除CSV文件
+		// 注意：如果使用FileAttachment后立即删除，可能会出现文件未传输完毕就被删除的问题，
+		// 在实际项目中可以采用异步处理或者将CSV内容写入内存再传输。
+		go func() {
+			// 等待1秒，确保文件已经被传输
+			time.Sleep(3600 * time.Second)
+			os.Remove(filePath)
+		}()
+	})
 
 	r.Run(":5656")
+}
+
+// dbToCSV 查询数据库数据并将结果写入 CSV 文件
+func dbToCSV(db *gorm.DB, filePath string) error {
+	// 查询所有 AnswerRecord，预加载 Answers
+	var records []AnswerRecord
+	if err := db.Preload("Answers").Find(&records).Error; err != nil {
+		return err
+	}
+
+	// 创建或覆盖 CSV 文件
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// 写入 CSV 表头
+	headers := []string{"RecordID", "Type", "Timestamp", "Question", "Answer"}
+	if err := writer.Write(headers); err != nil {
+		return err
+	}
+
+	// 写入数据，每行写入一个Question和Answer，其他字段一致（如果一个记录对应多个答案，则生成多行）
+	for _, record := range records {
+		for _, ans := range record.Answers {
+			// 时间戳转为字符串，可以自行调整为期望格式
+			row := []string{
+				strconv.Itoa(int(record.ID)),
+				record.Type,
+				strconv.FormatInt(record.Timestamp, 10),
+				ans.Question,
+				ans.Answer,
+			}
+			if err := writer.Write(row); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func saveData(c *gin.Context, db *gorm.DB) {
