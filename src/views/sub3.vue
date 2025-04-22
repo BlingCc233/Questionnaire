@@ -64,6 +64,7 @@ import WordCloud from '../components/WordCloud.vue';
 import CustomModal from '../components/CustomModal.vue';
 import {MessagePlugin} from 'tdesign-vue-next';
 import dataManager from '../utils/dataManager';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'App',
@@ -78,6 +79,7 @@ export default defineComponent({
     const modalTitle = ref('提示');
     const modalMessage = ref('这里是消息内容');
     const firstUnansweredQuestionId = ref('');
+    const router = useRouter();
 
     const showModal = (title: string, message: string) => {
       modalTitle.value = title;
@@ -121,6 +123,7 @@ export default defineComponent({
 
       // 显示成功消息
       MessagePlugin.success('提交成功');
+      router.push('/')
 
       // showModal('提交成功', '问卷已成功提交！感谢您的参与。');
 

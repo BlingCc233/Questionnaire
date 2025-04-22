@@ -10,6 +10,11 @@
       <div class="home-content">
         <h1 class="title">教师能力评估系统</h1>
         <p class="subtitle">请选择要填写的调查问卷</p>
+        <div class="describe">
+          <t-typography-paragraph :ellipsis="{row:2,expandable: true,collapsible: true,}" style="font-size: .7em">
+            本问卷由华东师范大学数学科学学院“卓越师范生培养目标达成评价方法探索与实践”项目组设计，面向毕业三到五年的卓越师范生代表开展调研，旨在基于《师范类专业认证标准》及“一践行三学会”（践行师德、学会教学、学会育人、学会发展）框架，量化评估卓越师范生培养目标在师德表现、教学能力、育人成效及专业发展四大维度的实际达成情况，并收集多方反馈数据，为优化师范生培养方案、改进教育实践提供科学依据，助力构建动态化、持续完善的师范教育体系。问卷最终解释权归项目组所有。
+          </t-typography-paragraph>
+        </div>
 
         <div class="nav-cards">
           <transition-group name="staggered-fade" tag="div" appear>
@@ -35,13 +40,12 @@
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
+import {useRouter} from 'vue-router'
 
 export default {
   name: 'HomeView',
   setup() {
     const router = useRouter()
-
     const navItems = [
       {
         path: '/sub1',
@@ -158,13 +162,13 @@ export default {
 .subtitle {
   font-size: 1.2rem;
   color: #7f8c8d;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
 }
 
 .nav-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
+  gap: 1rem;
   padding: 1rem;
 }
 
@@ -222,6 +226,12 @@ export default {
   z-index: -1;
 }
 
+.describe{
+  width: 50%;
+  display: inline-flex;
+}
+
+
 /* 进入动画 */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
@@ -261,6 +271,10 @@ export default {
 
   .subtitle {
     font-size: 1rem;
+  }
+
+  .describe{
+    width: 80%;
   }
 }
 </style>
