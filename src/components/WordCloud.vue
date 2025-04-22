@@ -18,7 +18,7 @@ export default defineComponent({
   name: 'WordCloud',
   props: {
     answers: {
-      type: Object as () => Record<string, string>,
+      type: Object as () => Record<string, string | string[]>,
       required: true
     },
     questions: {
@@ -59,11 +59,24 @@ export default defineComponent({
       Object.entries(props.answers).forEach(([questionId, answerValue]) => {
         const question = props.questions.find(q => q.id === questionId);
         if (question) {
-          const selectedOption = question.options.find(opt => opt.value === answerValue);
-          if (selectedOption) {
-            selectedOption.keywords.forEach(word => {
-              wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+          if (Array.isArray(answerValue)) {
+            // Handle multi-select answers (string[])
+            answerValue.forEach(value => {
+              const selectedOption = question.options.find(opt => opt.value === value);
+              if (selectedOption) {
+                selectedOption.keywords.forEach(word => {
+                  wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+                });
+              }
             });
+          } else {
+            // Handle single-select answers (string)
+            const selectedOption = question.options.find(opt => opt.value === answerValue);
+            if (selectedOption) {
+              selectedOption.keywords.forEach(word => {
+                wordFrequency[word] = (wordFrequency[word] || 0) + 1;
+              });
+            }
           }
         }
       });

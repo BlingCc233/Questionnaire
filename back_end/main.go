@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,13 +26,13 @@ type Answer struct {
 	ID       uint   `gorm:"primaryKey"`
 	RecordID uint   `gorm:"not null"`
 	Question string `gorm:"size:3;not null"`
-	Answer   string `gorm:"size:1;not null"`
+	Answer   string `gorm:"size:255;not null"` // 扩大字段以支持多选答案
 }
 
 // 请求数据结构
 type SaveDataRequest struct {
-	Type    string            `json:"type"`
-	Answers map[string]string `json:"answers"`
+	Type    string                 `json:"type"`
+	Answers map[string]interface{} `json:"answers"` // 修改为interface{}以支持字符串或字符串数组
 }
 
 // 删除记录请求结构
@@ -84,23 +85,16 @@ func main() {
 		getData(c, db)
 	})
 	r.GET("/downdb", func(c *gin.Context) {
-		// 生成 CSV 文件
 		filePath := "./answer.csv"
 		if err := dbToCSV(db, filePath); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
-		// 定义下载文件名，这里使用纳秒级时间戳
 		downloadName := fmt.Sprintf("%d.csv", time.Now().UnixNano())
-		// 发送文件附件
 		c.FileAttachment(filePath, downloadName)
 
-		// 传输完成后，删除CSV文件
-		// 注意：如果使用FileAttachment后立即删除，可能会出现文件未传输完毕就被删除的问题，
-		// 在实际项目中可以采用异步处理或者将CSV内容写入内存再传输。
 		go func() {
-			// 等待1秒，确保文件已经被传输
 			time.Sleep(3600 * time.Second)
 			os.Remove(filePath)
 		}()
@@ -109,15 +103,12 @@ func main() {
 	r.Run(":5656")
 }
 
-// dbToCSV 查询数据库数据并将结果写入 CSV 文件
 func dbToCSV(db *gorm.DB, filePath string) error {
-	// 查询所有 AnswerRecord，预加载 Answers
 	var records []AnswerRecord
 	if err := db.Preload("Answers").Find(&records).Error; err != nil {
 		return err
 	}
 
-	// 创建或覆盖 CSV 文件
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
@@ -127,16 +118,13 @@ func dbToCSV(db *gorm.DB, filePath string) error {
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	// 写入 CSV 表头
 	headers := []string{"RecordID", "Type", "Timestamp", "Question", "Answer"}
 	if err := writer.Write(headers); err != nil {
 		return err
 	}
 
-	// 写入数据，每行写入一个Question和Answer，其他字段一致（如果一个记录对应多个答案，则生成多行）
 	for _, record := range records {
 		for _, ans := range record.Answers {
-			// 时间戳转为字符串，可以自行调整为期望格式
 			row := []string{
 				strconv.Itoa(int(record.ID)),
 				record.Type,
@@ -185,10 +173,28 @@ func saveData(c *gin.Context, db *gorm.DB) {
 	}
 
 	for q, a := range req.Answers {
+		var answerValue string
+		switch v := a.(type) {
+		case string:
+			answerValue = v
+		case []interface{}:
+			var strValues []string
+			for _, item := range v {
+				if str, ok := item.(string); ok {
+					strValues = append(strValues, str)
+				}
+			}
+			answerValue = strings.Join(strValues, ",")
+		default:
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid answer format"})
+			return
+		}
+
 		answer := Answer{
 			RecordID: record.ID,
 			Question: q,
-			Answer:   a,
+			Answer:   answerValue,
 		}
 		if err := tx.Create(&answer).Error; err != nil {
 			tx.Rollback()
@@ -239,9 +245,14 @@ func getData(c *gin.Context, db *gorm.DB) {
 
 	var response []map[string]interface{}
 	for _, record := range records {
-		answersMap := make(map[string]string)
+		answersMap := make(map[string]interface{})
 		for _, answer := range record.Answers {
-			answersMap[answer.Question] = answer.Answer
+			// 检查答案是否包含逗号(多选题)
+			if strings.Contains(answer.Answer, ",") {
+				answersMap[answer.Question] = strings.Split(answer.Answer, ",")
+			} else {
+				answersMap[answer.Question] = answer.Answer
+			}
 		}
 
 		response = append(response, map[string]interface{}{

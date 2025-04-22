@@ -2,7 +2,7 @@
  * 问卷答案类型
  */
 interface QuestionnaireAnswers {
-    [key: string]: string; // 动态问题键值对，如 q1: "A", q2: "B" 等
+    [key: string]: string | string[]; // 动态问题键值对，如 q1: "A", q2: "B" 等
 }
 
 /**

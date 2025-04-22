@@ -294,8 +294,9 @@ const questionTitles = {
         'q4': '4. 在数学教学活动中，您如何应用国际化专业能力？',
         'q5': '5. 在教学实践中，您会对以下哪些核心环节进行反思与研究？',
         'q6': '6. 在一次数学课上，学生们对新学的几何知识理解起来比较困难，课堂气氛沉闷，作业完成情况也不理想。您认为是哪里出现了问题？',
-        'q7': '7. 在日常教学中，您经常参与的教师合作活动及表现是？',
-        'q8': '8. 您在学校教师合作中感受到哪些支持与成效？'
+        'q7': '7. 在一次数学课上，您发现一个学生对数学知识理解有困难，但您并不知道具体原因。您会怎么处理？',
+        'q8': '8. 在日常教学中，您经常参与的教师合作活动及表现是？',
+        'q9': '9. 您在学校教师合作中感受到哪些支持与成效？'
     }
     // 可以添加其他问卷的问题标题
 };
@@ -540,13 +541,23 @@ async function updateQuestionChart() {
         const ctx = document.getElementById('questionChart').getContext('2d');
         if (questionChart) questionChart.destroy();
         return;
-    }else {
-        answerCounts = { 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E':0, 'F':0 };
+    } else {
+        answerCounts = { 'A': 0, 'B': 0, 'C': 0, 'D': 0, 'E': 0, 'F': 0 };
     }
+
     data.forEach(item => {
         if (item.answers && item.answers[questionKey]) {
             const answer = item.answers[questionKey];
-            if (answerCounts[answer] !== undefined) answerCounts[answer]++;
+            // Handle both string (single answer) and array (multiple answers)
+            if (Array.isArray(answer)) {
+                // Multiple choice - increment count for each selected option
+                answer.forEach(option => {
+                    if (answerCounts[option] !== undefined) answerCounts[option]++;
+                });
+            } else if (typeof answer === 'string') {
+                // Single choice
+                if (answerCounts[answer] !== undefined) answerCounts[answer]++;
+            }
         }
     });
 
@@ -572,8 +583,7 @@ async function updateQuestionChart() {
             plugins: { title: { display: true, text: questionTitles[questionnaireType][questionKey] } }
         }
     });
-}
-// 获取各问卷关键词数据
+}// 获取各问卷关键词数据
 async function getQuestionnaireKeywords() {
     const allData = await dataManager.getAllData();
     const keywordMappings = {

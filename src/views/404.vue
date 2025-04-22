@@ -11,7 +11,6 @@
 import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
-const route = useRoute();
 const backText ='返回上一页';
 
 const goBack = () => {

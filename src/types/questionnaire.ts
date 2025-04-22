@@ -1,6 +1,7 @@
 export interface Question {
     id: string;
     text: string;
+    multiple?: boolean;  // 新增字段，标识是否为多选题
     options: Option[];
 }
 
@@ -757,7 +758,8 @@ export const questions3: Question[] = [
     },
     {
         id: "q5",
-        text: "在您的教学实践中，您如何处理学生个体差异并支持学生成长？请选择最符合您做法的选项：",
+        text: "在您的教学实践中，您如何处理学生个体差异并支持学生成长？请选择最符合您做法的选项：（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -941,7 +943,8 @@ export const questions3: Question[] = [
 export const questions4: Question[] = [
     {
         id: "q1",
-        text: "在数学教学专业成长中，您符合以下哪种描述？",
+        text: "在数学教学专业成长中，您符合以下哪种描述？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -962,7 +965,8 @@ export const questions4: Question[] = [
     },
     {
         id: "q2",
-        text: "在准备一节公开课时，您会有以下哪种具体工作？",
+        text: "在准备一节公开课时，您会有以下哪种具体工作？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -983,7 +987,8 @@ export const questions4: Question[] = [
     },
     {
         id: "q3",
-        text: "在您的教学实践中，如何体现对国际教育理念的理解？",
+        text: "在您的教学实践中，如何体现对国际教育理念的理解？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -1009,7 +1014,8 @@ export const questions4: Question[] = [
     },
     {
         id: "q4",
-        text: "在数学教学活动中，您如何应用国际化专业能力？",
+        text: "在数学教学活动中，您如何应用国际化专业能力？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -1035,7 +1041,8 @@ export const questions4: Question[] = [
     },
     {
         id: "q5",
-        text: "在教学实践中，您会对以下哪个核心环节进行反思与研究？",
+        text: "在教学实践中，您会对以下哪个核心环节进行反思与研究？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -1061,7 +1068,7 @@ export const questions4: Question[] = [
     },
     {
         id: "q6",
-        text: "在一次数学课上，学生们对新学的几何知识理解起来比较困难，课堂气氛沉闷，作业完成情况也不理想。您认为是哪里出现了问题？",
+        text: "在一次数学课上，学生们对新学的几何知识理解起来比较困难，课堂气氛沉闷，作业完成情况也不理想。您认为是哪里出现了问题？（单选）",
         options: [
             {
                 value: "A",
@@ -1087,7 +1094,35 @@ export const questions4: Question[] = [
     },
     {
         id: "q7",
-        text: "在日常教学中，您经常参与的教师合作活动及表现是？",
+        text: "以下哪些选项贴合您在教学研究规划方面的情况？（多选）",
+        multiple: true,
+        options: [
+            {
+                value: "A",
+                text: "制定详细的教学研究计划，明确研究目标、方法和步骤",
+                keywords: ["反思研究", "教学纪律"]
+            },
+            {
+                value: "B",
+                text: "合理运用多种研究方法，如问卷调查、访谈、案例分析等",
+                keywords: ["反思研究", "教学方法"]
+            },
+            {
+                value: "C",
+                text: "能将教学研究成果有效应用于教学实践，提升教学质量",
+                keywords: ["反思研究", "教学进度"]
+            },
+            {
+                value: "D",
+                text: "认为学生练习不够，布置大量同类应用题让学生课后做",
+                keywords: ["反思研究", "练习量"]
+            }
+        ]
+    },
+    {
+        id: "q8",
+        text: "在日常教学中，您经常参与的教师合作活动及表现是？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",
@@ -1112,8 +1147,9 @@ export const questions4: Question[] = [
         ]
     },
     {
-        id: "q8",
-        text: "您在学校教师合作中感受到哪些支持与成效？",
+        id: "q9",
+        text: "您在学校教师合作中感受到哪些支持与成效？（多选）",
+        multiple: true,
         options: [
             {
                 value: "A",

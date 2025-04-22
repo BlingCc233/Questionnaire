@@ -10,7 +10,7 @@
                 v-for="(question, index) in questions4"
                 :key="question.id"
                 class="question mb-3"
-                :class="{ 'unanswered': !answers[question.id] && showValidation }"
+                :class="{ 'unanswered': !isQuestionAnswered(question) && showValidation }"
                 :id="`${question.id}-container`"
             >
               <p>{{ (index + 1) + '. ' + question.text }}</p>
@@ -22,10 +22,11 @@
                 <label class="form-check-label">
                   <input
                       class="form-check-input"
-                      type="radio"
+                      :type="question.multiple ? 'checkbox' : 'radio'"
                       :name="question.id"
                       :value="option.value"
                       v-model="answers[question.id]"
+                      @change="handleAnswerChange(question, $event)"
                   >
                   {{ option.value + '. ' + option.text }}
                 </label>
@@ -58,8 +59,7 @@
 
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
-import { questions4 } from '../types/questionnaire';
-import type { Answers } from '../types/questionnaire';
+import {type Question, questions4} from '../types/questionnaire';
 import WordCloud from '../components/WordCloud.vue';
 import CustomModal from '../components/CustomModal.vue';
 import {MessagePlugin} from 'tdesign-vue-next';
@@ -73,13 +73,44 @@ export default defineComponent({
     CustomModal
   },
   setup() {
-    const answers = reactive<Answers>({});
+    const answers = reactive<Record<string, string | string[]>>({});
     const showValidation = ref(false);
     const modalVisible = ref(false);
     const modalTitle = ref('提示');
     const modalMessage = ref('这里是消息内容');
     const firstUnansweredQuestionId = ref('');
     const router = useRouter();
+
+    const isQuestionAnswered = (question: Question) => {
+      const answer = answers[question.id];
+      if (question.multiple) {
+        return Array.isArray(answer) && answer.length > 0;
+      }
+      return answer !== undefined && answer !== '';
+    };
+
+    const handleAnswerChange = (question: Question, event: Event) => {
+      if (!question.multiple) return;
+
+      const target = event.target as HTMLInputElement;
+      const value = target.value;
+      const currentAnswers = Array.isArray(answers[question.id])
+          ? [...(answers[question.id] as string[])]
+          : [];
+
+      if (target.checked) {
+        if (!currentAnswers.includes(value)) {
+          currentAnswers.push(value);
+        }
+      } else {
+        const index = currentAnswers.indexOf(value);
+        if (index > -1) {
+          currentAnswers.splice(index, 1);
+        }
+      }
+
+      answers[question.id] = currentAnswers;
+    };
 
     const showModal = (title: string, message: string) => {
       modalTitle.value = title;
@@ -104,34 +135,19 @@ export default defineComponent({
       firstUnansweredQuestionId.value = '';
 
       // 检查所有问题是否已回答
-      const unansweredQuestions = questions4.filter(q => !answers[q.id]);
+      const unansweredQuestions = questions4.filter(q => !isQuestionAnswered(q));
 
       if (unansweredQuestions.length > 0) {
         firstUnansweredQuestionId.value = unansweredQuestions[0].id;
         scrollToUnansweredQuestion();
-        // showModal('提交失败', '请回答所有问题后再提交！未回答的问题已用红色高亮显示。');
         MessagePlugin.error('有问题尚未作答');
-
         return;
       }
 
       console.log('提交的数据:', answers);
-
-      // 这里可以添加数据保存逻辑
-      // dataManager.saveData('index', answers);
       dataManager.saveData('sub3', answers);
-
-      // 显示成功消息
       MessagePlugin.success('提交成功');
       router.push('/')
-
-      // showModal('提交成功', '问卷已成功提交！感谢您的参与。');
-
-      // 重置表单
-      // Object.keys(answers).forEach(key => {
-      //   answers[key] = '';
-      // });
-      // showValidation.value = false;
     };
 
     return {
@@ -141,6 +157,8 @@ export default defineComponent({
       modalVisible,
       modalTitle,
       modalMessage,
+      isQuestionAnswered,
+      handleAnswerChange,
       submitForm,
       showModal
     };
