@@ -11,8 +11,11 @@
         <h1 class="title">教师能力评估系统</h1>
         <p class="subtitle">请选择要填写的调查问卷</p>
         <div class="describe">
-          <t-typography-paragraph :ellipsis="{row:2,expandable: true,collapsible: true,}" style="font-size: .7em">
-            本问卷由华东师范大学数学科学学院“卓越师范生培养目标达成评价方法探索与实践”项目组设计，面向毕业三到五年的卓越师范生代表开展调研，旨在基于《师范类专业认证标准》及“一践行三学会”（践行师德、学会教学、学会育人、学会发展）框架，量化评估卓越师范生培养目标在师德表现、教学能力、育人成效及专业发展四大维度的实际达成情况，并收集多方反馈数据，为优化师范生培养方案、改进教育实践提供科学依据，助力构建动态化、持续完善的师范教育体系。问卷最终解释权归项目组所有。
+          <t-typography-paragraph
+              :ellipsis="{ row: 2, expandable: true, collapsible: true }"
+              style="font-size: .7em"
+          >
+            本问卷由华东师范大学数学科学学院“卓越师范生培养目标达成评价方法探索与实践”项目组设计……
           </t-typography-paragraph>
         </div>
 
@@ -28,7 +31,16 @@
               <div class="card-icon">
                 <i :class="getIconClass(index)"></i>
               </div>
-              <h3 class="card-title">{{ item.meta.title }}</h3>
+              <h3 class="card-title">
+                <!-- 普通部分 -->
+                {{ item.titlePrefix }}
+                <!-- 高亮部分（如果存在） -->
+                <span v-if="item.highlight" class="highlight">
+                  {{ item.highlight }}
+                </span>
+                <!-- 后面的部分 -->
+                {{ item.titleSuffix }}
+              </h3>
               <p class="card-desc">点击进入问卷</p>
               <div class="card-hover-effect"></div>
             </div>
@@ -40,40 +52,46 @@
 </template>
 
 <script>
-import {useRouter} from 'vue-router'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'HomeView',
   setup() {
     const router = useRouter()
+    /*
+      注意：这里拆分了标题文字，便于在模板中定制高亮。
+      例如，对于“教师道德素养调查问卷”，我们将 titlePrefix 设为 “教师”，
+      highlight 设为 “道德素养”，titleSuffix 设为 “调查问卷”。
+    */
     const navItems = [
       {
         path: '/sub1',
         name: 'sub1',
-        meta: {
-          title: '教师道德素养调查问卷'
-        }
+        titlePrefix: '教师',
+        highlight: '道德素养',
+        titleSuffix: '调查问卷'
       },
       {
         path: '/sub2',
         name: 'sub2',
-        meta: {
-          title: '教师教学能力调查问卷'
-        }
+        titlePrefix: '教师',
+        highlight: '教学能力',
+        titleSuffix: '调查问卷'
       },
       {
         path: '/sub3',
         name: 'sub3',
-        meta: {
-          title: '教师育人能力调查问卷'
-        }
+        // 如果没有特殊高亮，可全部作为普通部分
+        titlePrefix: '教师',
+        highlight: '育人能力',
+        titleSuffix: '调查问卷'
       },
       {
         path: '/sub4',
         name: 'sub4',
-        meta: {
-          title: '教师发展能力调查问卷'
-        }
+        titlePrefix: '教师调查',
+        highlight: '发展能力',
+        titleSuffix: '调查问卷'
       }
     ]
 
@@ -82,7 +100,12 @@ export default {
     }
 
     const getIconClass = (index) => {
-      const icons = ['fas fa-heart', 'fas fa-chalkboard-teacher', 'fas fa-hands-helping', 'fas fa-chart-line']
+      const icons = [
+        'fas fa-heart',
+        'fas fa-chalkboard-teacher',
+        'fas fa-hands-helping',
+        'fas fa-chart-line'
+      ]
       return icons[index % icons.length]
     }
 
@@ -96,7 +119,6 @@ export default {
 </script>
 
 <style scoped>
-/* 这里保持和之前完全相同的CSS样式 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
 
@@ -226,11 +248,17 @@ export default {
   z-index: -1;
 }
 
-.describe{
+.describe {
   width: 50%;
   display: inline-flex;
 }
 
+/* 高亮样式 */
+.highlight {
+  color: #f56e80;
+  font-weight: bold;
+  text-shadow: 0 0px 3px rgba(234, 150, 150, 0.55);
+}
 
 /* 进入动画 */
 .fade-slide-enter-active,
@@ -273,7 +301,7 @@ export default {
     font-size: 1rem;
   }
 
-  .describe{
+  .describe {
     width: 80%;
   }
 }

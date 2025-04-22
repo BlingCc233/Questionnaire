@@ -86,4 +86,9 @@ h1 {
 #wordCloud svg {
     max-width: 100%;
     height: auto;
-} 
+}
+.highlight {
+    color: #f56e80;
+    font-weight: bold;
+    text-shadow: 0 0px 3px rgba(234, 150, 150, 0.55);
+}
