@@ -997,7 +997,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await updateDisplay();
     await updateAllWordClouds();
 
-    window.applyDateFilter = async function() {
+    window.applyDatefilter = async function() {
         await applyDateFilter();
         await updateAllWordClouds();
     };
@@ -1013,5 +1013,5 @@ document.addEventListener('DOMContentLoaded', async function() {
     };
 });
 // 保存原始的日期筛选函数
-const originalApplyDateFilter = window.applyDateFilter;
+const originalApplyDateFilter = window.applyDatefilter;
 const originalResetDateFilter = window.resetDateFilter;

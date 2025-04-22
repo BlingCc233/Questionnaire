@@ -15,11 +15,7 @@ const route = useRoute();
 const backText ='返回上一页';
 
 const goBack = () => {
-  if (route.query.fromApi) {
     router.push('/')
-  } else {
-    window.history.back();
-  }
 };
 </script>
 
