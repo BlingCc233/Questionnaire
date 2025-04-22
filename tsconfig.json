@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "typeRoots": ["node_modules/@types", "vite/client", "vue-router"],
+    "types": ["d3"],
+    "moduleResolution": "node"
+  }
+}

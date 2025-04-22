@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="logo.png"/>
+    <title>问卷数据汇总</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jasondavies/d3-cloud/build/d3.layout.cloud.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">问卷数据汇总</h1>
+
+
+        <!-- 新增统计图表部分 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">数据统计</h5>
+
+                        <!-- 新增日期筛选功能 -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">日期筛选</h6>
+                                        <div class="row g-3 align-items-center">
+                                            <div class="col-auto">
+                                                <label for="startDate" class="col-form-label">开始日期</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <input type="date" id="startDate" class="form-control">
+                                            </div>
+                                            <div class="col-auto">
+                                                <label for="endDate" class="col-form-label">结束日期</label>
+                                            </div>
+                                            <div class="col-auto">
+                                                <input type="date" id="endDate" class="form-control">
+                                            </div>
+                                            <div class="col-auto">
+                                                <button class="btn btn-primary" onclick="applyDateFilter()">应用筛选</button>
+                                            </div>
+                                            <div class="col-auto">
+                                                <button class="btn btn-secondary" onclick="resetDateFilter()">重置</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">问卷类型分布</h6>
+                                        <canvas id="typeChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">提交时间趋势</h6>
+                                        <canvas id="timeChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 添加词云图展示区域 -->
+                        <div class="row mb-3">
+                            <div class="col-12 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">所有问卷综合词云分析</h6>
+                                        <div id="totalWordCloud" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">道德素养问卷词云分析</h6>
+                                        <div id="indexWordCloud" style="height: 250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">教学能力问卷词云分析</h6>
+                                        <div id="sub1WordCloud" style="height: 250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">育人能力问卷词云分析</h6>
+                                        <div id="sub2WordCloud" style="height: 250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">发展能力问卷词云分析</h6>
+                                        <div id="sub3WordCloud" style="height: 250px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">问题回答统计</h6>
+                                        <div class="mb-3">
+                                            <label for="questionnaireType" class="form-label">选择问卷类型</label>
+                                            <select class="form-select" id="questionnaireType" onchange="updateQuestionStats()">
+                                                <option value="index">道德品质问卷</option>
+                                                <option value="sub1">教学技能问卷</option>
+                                                <option value="sub2">育人能力问卷</option>
+                                                <option value="sub3">发展能力问卷</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="questionSelect" class="form-label">选择问题</label>
+                                            <select class="form-select" id="questionSelect" onchange="updateQuestionChart()">
+                                                <option value="">请先选择问卷类型</option>
+                                            </select>
+                                        </div>
+                                        <canvas id="questionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title">问卷数据</h5>
+                            <div>
+                                <button class="btn btn-success me-2" onclick="exportData()">导出数据</button>
+<!--                                <button class="btn btn-danger" onclick="clearData()">清除数据</button>-->
+                            </div>
+                        </div>
+                        <div id="dataTable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/dataManager.js"></script>
+    <script src="js/summary.js"></script>
+    <script>
+    // 添加一个测试按钮，用于手动检查数据加载
+    document.addEventListener('DOMContentLoaded', function() {
+        // 检查localStorage中是否有数据
+        const hasData = localStorage.getItem('questionnaireData');
+        console.log('localStorage数据状态:', hasData ? '有数据' : '无数据');
+        if (hasData) {
+            console.log('数据示例:', JSON.parse(hasData)[0]);
+        } else {
+
+        }
+
+        // 初始化统计图表
+        initCharts();
+
+        // 确保词云图也被初始化
+        console.log('初始化词云图...');
+        updateAllWordClouds();
+    });
+    </script>
+</body>
+</html>
