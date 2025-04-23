@@ -88,7 +88,7 @@ export default {
       {
         path: '/sub4',
         name: 'sub4',
-        titlePrefix: '教师调查',
+        titlePrefix: '教师',
         highlight: '发展能力',
         titleSuffix: '调查问卷'
       }
